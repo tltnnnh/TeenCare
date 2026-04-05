@@ -211,6 +211,8 @@ const POSITIVE_QUOTES = [
   "Học sinh TeenCare luôn tràn đầy năng lượng!",
   "Căng thẳng chỉ là tạm thời, sức bền là mãi mãi.",
   "Phản ứng hóa học xảy ra trong não có đủ điện để thắp sáng một bóng đèn led."
+  "Nhạc nhẹ hoặc không lời có thể giúp bạn học tốt hơn."
+  "Viết tay giúp nhớ bài tốt hơn gõ máy."
 ];
 
 const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
@@ -388,7 +390,7 @@ const SPORTS_CONFIG: Record<string, {
 
 const NUTRITION_RESOURCES: Record<NutritionGoal, Resource[]> = {
   weight_loss: [
-    { title: "Hướng dẫn giảm cân hiệu quả", type: "video", url: "https://share.google/Yun2xfFc6dQB9dShg", category: "Giảm cân" },
+    { title: "Hướng dẫn giảm cân hiệu quả", type: "article", url: "https://share.google/Yun2xfFc6dQB9dShg", category: "Giảm cân" },
     { title: "Cardio 10 phút", type: "video", url: "https://share.google/o3sM4I5QFCNHVaP01", category: "Giảm cân" }
   ],
   weight_gain: [
@@ -396,19 +398,19 @@ const NUTRITION_RESOURCES: Record<NutritionGoal, Resource[]> = {
     { title: "Thực đơn tăng cân cho người gầy hiệu quả, ngon miệng, ít tốn kém", type: "article", url: "https://share.google/njT03lMTbW7nW8qiE", category: "Tăng cân" }
   ],
   maintenance: [
-    { title: "Cách nào giữ dáng ở mọi lứa tuổi? | Vinmec", type: "article", url: "https://share.google/xazuroVmszWVXdtQL", category: "Duy trì" },
-    { title: "Cách xây dựng một chế độ ăn uống lành mạnh, cân bằng | Vinmec", type: "article", url: "https://share.google/Fr3qaQM1YNqxp37BE", category: "Duy trì" }
+    { title: "Cách nào giữ dáng ở mọi lứa tuổi?", type: "article", url: "https://share.google/xazuroVmszWVXdtQL", category: "Duy trì" },
+    { title: "Cách xây dựng một chế độ ăn uống lành mạnh, cân bằng", type: "article", url: "https://share.google/Fr3qaQM1YNqxp37BE", category: "Duy trì" }
   ],
   muscle_gain: [
-    { title: "10 thực phẩm hỗ trợ tăng cơ mà bạn nên bổ sung vào chế độ ăn | ELLE Man", type: "article", url: "https://share.google/XQLbwV6O690tk27GF", category: "Tăng cơ" },
-    { title: "5 Bài Tập Gym Tăng Cơ Hiệu Quả Nhất Cho Người Mới Bắt Đầu", type: "video", url: "https://share.google/MG92gw2imk8JsrxfK", category: "Tăng cơ" }
+    { title: "10 thực phẩm hỗ trợ tăng cơ mà bạn nên bổ sung vào chế độ ăn", type: "article", url: "https://share.google/XQLbwV6O690tk27GF", category: "Tăng cơ" },
+    { title: "5 Bài Tập Gym Tăng Cơ Hiệu Quả Nhất Cho Người Mới Bắt Đầu", type: "article", url: "https://share.google/MG92gw2imk8JsrxfK", category: "Tăng cơ" }
   ],
   cutting: [
-    { title: "5 phương pháp giảm mỡ thừa nhưng giữ được khối lượng cơ - Nhà thuốc FPT Long Châu", type: "article", url: "https://share.google/gsjs6of2YmBk2MdkE", category: "Giảm mỡ" },
+    { title: "5 phương pháp giảm mỡ thừa nhưng giữ được khối lượng cơ", type: "article", url: "https://share.google/gsjs6of2YmBk2MdkE", category: "Giảm mỡ" },
     { title: "Làm sao để giảm cân mà vẫn giữ cơ?", type: "article", url: "https://share.google/iFlPMRXF5V8HJHXjV", category: "Giảm mỡ" }
   ],
   eat_clean: [
-    { title: "Eat Clean VN | Lối ăn uống lành mạnh giúp cải thiện sức khỏe", type: "article", url: "https://share.google/cFEcaF1G7jOpCiQ0m", category: "Eat Clean" },
+    { title: "Lối ăn uống lành mạnh giúp cải thiện sức khỏe", type: "article", url: "https://share.google/cFEcaF1G7jOpCiQ0m", category: "Eat Clean" },
     { title: "THỰC ĐƠN EAT CLEAN 7 NGÀY VÀ LỢI ÍCH KHI ÁP DỤNG CHẾ ĐỘ ĂN SẠCH", type: "article", url: "https://share.google/eOfYFIDjA9tjXZ1te", category: "Eat Clean" }
   ]
 };
