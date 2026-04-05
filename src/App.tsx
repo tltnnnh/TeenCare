@@ -210,9 +210,7 @@ const POSITIVE_QUOTES = [
   "Nụ cười là liều thuốc bổ miễn phí tốt nhất.",
   "Học sinh TeenCare luôn tràn đầy năng lượng!",
   "Căng thẳng chỉ là tạm thời, sức bền là mãi mãi.",
-  "Phản ứng hóa học xảy ra trong não có đủ điện để thắp sáng một bóng đèn led.",
-  "Nhạc nhẹ hoặc không lời có thể giúp bạn học tốt hơn.",
-  "Viết tay giúp nhớ bài tốt hơn gõ máy."
+  "Phản ứng hóa học xảy ra trong não có đủ điện để thắp sáng một bóng đèn led."
 ];
 
 const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
@@ -390,7 +388,7 @@ const SPORTS_CONFIG: Record<string, {
 
 const NUTRITION_RESOURCES: Record<NutritionGoal, Resource[]> = {
   weight_loss: [
-    { title: "Hướng dẫn giảm cân hiệu quả", type: "article", url: "https://share.google/Yun2xfFc6dQB9dShg", category: "Giảm cân" },
+    { title: "Hướng dẫn giảm cân hiệu quả", type: "video", url: "https://share.google/Yun2xfFc6dQB9dShg", category: "Giảm cân" },
     { title: "Cardio 10 phút", type: "video", url: "https://share.google/o3sM4I5QFCNHVaP01", category: "Giảm cân" }
   ],
   weight_gain: [
@@ -398,19 +396,19 @@ const NUTRITION_RESOURCES: Record<NutritionGoal, Resource[]> = {
     { title: "Thực đơn tăng cân cho người gầy hiệu quả, ngon miệng, ít tốn kém", type: "article", url: "https://share.google/njT03lMTbW7nW8qiE", category: "Tăng cân" }
   ],
   maintenance: [
-    { title: "Cách nào giữ dáng ở mọi lứa tuổi?", type: "article", url: "https://share.google/xazuroVmszWVXdtQL", category: "Duy trì" },
-    { title: "Cách xây dựng một chế độ ăn uống lành mạnh, cân bằng", type: "article", url: "https://share.google/Fr3qaQM1YNqxp37BE", category: "Duy trì" }
+    { title: "Cách nào giữ dáng ở mọi lứa tuổi? | Vinmec", type: "article", url: "https://share.google/xazuroVmszWVXdtQL", category: "Duy trì" },
+    { title: "Cách xây dựng một chế độ ăn uống lành mạnh, cân bằng | Vinmec", type: "article", url: "https://share.google/Fr3qaQM1YNqxp37BE", category: "Duy trì" }
   ],
   muscle_gain: [
-    { title: "10 thực phẩm hỗ trợ tăng cơ mà bạn nên bổ sung vào chế độ ăn", type: "article", url: "https://share.google/XQLbwV6O690tk27GF", category: "Tăng cơ" },
-    { title: "5 Bài Tập Gym Tăng Cơ Hiệu Quả Nhất Cho Người Mới Bắt Đầu", type: "article", url: "https://share.google/MG92gw2imk8JsrxfK", category: "Tăng cơ" }
+    { title: "10 thực phẩm hỗ trợ tăng cơ mà bạn nên bổ sung vào chế độ ăn | ELLE Man", type: "article", url: "https://share.google/XQLbwV6O690tk27GF", category: "Tăng cơ" },
+    { title: "5 Bài Tập Gym Tăng Cơ Hiệu Quả Nhất Cho Người Mới Bắt Đầu", type: "video", url: "https://share.google/MG92gw2imk8JsrxfK", category: "Tăng cơ" }
   ],
   cutting: [
-    { title: "5 phương pháp giảm mỡ thừa nhưng giữ được khối lượng cơ", type: "article", url: "https://share.google/gsjs6of2YmBk2MdkE", category: "Giảm mỡ" },
+    { title: "5 phương pháp giảm mỡ thừa nhưng giữ được khối lượng cơ - Nhà thuốc FPT Long Châu", type: "article", url: "https://share.google/gsjs6of2YmBk2MdkE", category: "Giảm mỡ" },
     { title: "Làm sao để giảm cân mà vẫn giữ cơ?", type: "article", url: "https://share.google/iFlPMRXF5V8HJHXjV", category: "Giảm mỡ" }
   ],
   eat_clean: [
-    { title: "Lối ăn uống lành mạnh giúp cải thiện sức khỏe", type: "article", url: "https://share.google/cFEcaF1G7jOpCiQ0m", category: "Eat Clean" },
+    { title: "Eat Clean VN | Lối ăn uống lành mạnh giúp cải thiện sức khỏe", type: "article", url: "https://share.google/cFEcaF1G7jOpCiQ0m", category: "Eat Clean" },
     { title: "THỰC ĐƠN EAT CLEAN 7 NGÀY VÀ LỢI ÍCH KHI ÁP DỤNG CHẾ ĐỘ ĂN SẠCH", type: "article", url: "https://share.google/eOfYFIDjA9tjXZ1te", category: "Eat Clean" }
   ]
 };
@@ -1252,7 +1250,7 @@ function HistoryScreen({
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              onDelete("bmi", (entry as any).id || "");
+                              onDelete("bmi", entry.date);
                             }}
                             className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                           >
@@ -1336,7 +1334,7 @@ function HistoryScreen({
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              onDelete("mood", (entry as any).id || "");
+                              onDelete("mood", entry.date);
                             }}
                             className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                           >
@@ -1517,7 +1515,7 @@ function HistoryScreen({
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              onDelete("nutrition", (entry as any).id || "");
+                              onDelete("nutrition", entry.date);
                             }}
                             className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                           >
@@ -1601,7 +1599,7 @@ function HistoryScreen({
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              onDelete("workout", (entry as any).id || "");
+                              onDelete("workout", (entry as any).id || entry.date);
                             }}
                             className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                           >
@@ -1782,6 +1780,7 @@ function VitalMindScreen({
   addGratitudeEntryToLocal,
   setSuccessMessage,
   onDeleteGratitude,
+  onDeleteMood,
   sleepHistory,
   addSleepEntryToLocal,
   deleteSleepEntry,
@@ -1815,6 +1814,7 @@ function VitalMindScreen({
   addGratitudeEntryToLocal: (entry: GratitudeEntry) => void;
   setSuccessMessage: (msg: string | null) => void;
   onDeleteGratitude: (date: string) => void;
+  onDeleteMood: (date: string) => void;
   sleepHistory: SleepEntry[];
   addSleepEntryToLocal: (entry: SleepEntry) => void;
   deleteSleepEntry: (date: string) => void;
@@ -2473,6 +2473,12 @@ function VitalMindScreen({
                                 <p className="text-[10px] text-slate-400">{new Date(entry.date).toLocaleDateString('vi-VN')}</p>
                               </div>
                             </div>
+                            <button 
+                              onClick={() => onDeleteMood(entry.date)}
+                              className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                           {entry.note && (
                             <p className="text-[10px] text-slate-600 italic border-l-2 border-slate-200 pl-2">
@@ -2559,6 +2565,7 @@ export default function App() {
     color: "sky",
   });
   const [showSettings, setShowSettings] = useState(false);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [isReloading, setIsReloading] = useState(false);
   const [isProfileSetup, setIsProfileSetup] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -2637,8 +2644,8 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.BMI_HISTORY, JSON.stringify(newHistory));
   };
 
-  const deleteBmiEntry = (id: string) => {
-    const newHistory = bmiHistory.filter(h => (h as any).id !== id);
+  const deleteBmiEntry = (date: string) => {
+    const newHistory = bmiHistory.filter(h => h.date !== date);
     setBmiHistory(newHistory);
     localStorage.setItem(STORAGE_KEYS.BMI_HISTORY, JSON.stringify(newHistory));
   };
@@ -2649,8 +2656,8 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.MOOD_HISTORY, JSON.stringify(newHistory));
   };
 
-  const deleteMoodEntry = (id: string) => {
-    const newHistory = moodHistory.filter(h => (h as any).id !== id);
+  const deleteMoodEntry = (date: string) => {
+    const newHistory = moodHistory.filter(h => h.date !== date);
     setMoodHistory(newHistory);
     localStorage.setItem(STORAGE_KEYS.MOOD_HISTORY, JSON.stringify(newHistory));
   };
@@ -2661,8 +2668,8 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.NUTRITION_HISTORY, JSON.stringify(newHistory));
   };
 
-  const deleteNutritionEntry = (id: string) => {
-    const newHistory = nutritionHistory.filter(h => (h as any).id !== id);
+  const deleteNutritionEntry = (date: string) => {
+    const newHistory = nutritionHistory.filter(h => h.date !== date);
     setNutritionHistory(newHistory);
     localStorage.setItem(STORAGE_KEYS.NUTRITION_HISTORY, JSON.stringify(newHistory));
   };
@@ -2707,7 +2714,7 @@ export default function App() {
   };
 
   const deleteWorkoutEntry = (id: string) => {
-    const newHistory = workoutHistory.filter(h => (h as any).id !== id);
+    const newHistory = workoutHistory.filter(h => (h as any).id !== id && h.date !== id);
     setWorkoutHistory(newHistory);
     localStorage.setItem(STORAGE_KEYS.WORKOUT_HISTORY, JSON.stringify(newHistory));
   };
@@ -3720,6 +3727,7 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
                   addGratitudeEntryToLocal={addGratitudeEntryToLocal}
                   setSuccessMessage={setSuccessMessage}
                   onDeleteGratitude={deleteGratitudeEntry}
+                  onDeleteMood={deleteMoodEntry}
                   sleepHistory={sleepHistory}
                   addSleepEntryToLocal={addSleepEntryToLocal}
                   deleteSleepEntry={deleteSleepEntry}
@@ -3929,8 +3937,19 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
                                           </span>
                                           <span className="text-[10px] text-slate-400">{new Date(entry.date).toLocaleDateString('vi-VN')}</span>
                                         </div>
-                                        <div className="flex items-center gap-1 text-blue-500 text-[10px] font-bold">
-                                          <Droplets size={12} /> {entry.waterIntake} ly
+                                        <div className="flex items-center gap-3">
+                                          <div className="flex items-center gap-1 text-blue-500 text-[10px] font-bold">
+                                            <Droplets size={12} /> {entry.waterIntake} ly
+                                          </div>
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              deleteNutritionEntry(entry.date);
+                                            }}
+                                            className="p-1 text-slate-300 hover:text-red-500 transition-colors"
+                                          >
+                                            <Trash2 size={14} />
+                                          </button>
                                         </div>
                                       </div>
                                       <div className="text-[10px] text-slate-600 line-clamp-3 italic">
@@ -4056,23 +4075,41 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
                         <p className="text-[10px] opacity-70">Tải xuống toàn bộ lịch sử sức khỏe</p>
                       </div>
                     </button>
-                    <button
-                      onClick={() => {
-                        if (window.confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.")) {
-                          localStorage.clear();
-                          window.location.reload();
-                        }
-                      }}
-                      className="flex items-center gap-3 p-4 bg-red-50 rounded-2xl text-red-600 hover:bg-red-100 transition-all"
-                    >
-                      <div className="p-2 bg-white rounded-xl shadow-sm">
-                        <Trash2 size={18} />
+                    {!showDeleteAllConfirm ? (
+                      <button
+                        onClick={() => setShowDeleteAllConfirm(true)}
+                        className="flex items-center gap-3 p-4 bg-red-50 rounded-2xl text-red-600 hover:bg-red-100 transition-all w-full"
+                      >
+                        <div className="p-2 bg-white rounded-xl shadow-sm">
+                          <Trash2 size={18} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-bold">Xóa toàn bộ dữ liệu</p>
+                          <p className="text-[10px] opacity-70">Xóa hồ sơ và lịch sử sức khỏe</p>
+                        </div>
+                      </button>
+                    ) : (
+                      <div className="p-4 bg-red-100 rounded-2xl space-y-3">
+                        <p className="text-xs font-bold text-red-700 text-center">Bạn có chắc chắn muốn xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.</p>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => setShowDeleteAllConfirm(false)}
+                            className="flex-1 py-2 bg-white rounded-xl text-xs font-bold text-slate-600"
+                          >
+                            Hủy
+                          </button>
+                          <button 
+                            onClick={() => {
+                              localStorage.clear();
+                              window.location.reload();
+                            }}
+                            className="flex-1 py-2 bg-red-600 rounded-xl text-xs font-bold text-white"
+                          >
+                            Xác nhận xóa
+                          </button>
+                        </div>
                       </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold">Xóa toàn bộ dữ liệu</p>
-                        <p className="text-[10px] opacity-70">Xóa hồ sơ và lịch sử sức khỏe</p>
-                      </div>
-                    </button>
+                    )}
                     <button
                       onClick={() => {
                         setShowSettings(false);
