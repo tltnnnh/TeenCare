@@ -210,8 +210,8 @@ const POSITIVE_QUOTES = [
   "Nụ cười là liều thuốc bổ miễn phí tốt nhất.",
   "Học sinh TeenCare luôn tràn đầy năng lượng!",
   "Căng thẳng chỉ là tạm thời, sức bền là mãi mãi.",
-  "Phản ứng hóa học xảy ra trong não có đủ điện để thắp sáng một bóng đèn led."
-  "Nhạc nhẹ hoặc không lời có thể giúp bạn học tốt hơn."
+  "Phản ứng hóa học xảy ra trong não có đủ điện để thắp sáng một bóng đèn led.",
+  "Nhạc nhẹ hoặc không lời có thể giúp bạn học tốt hơn.",
   "Viết tay giúp nhớ bài tốt hơn gõ máy."
 ];
 
