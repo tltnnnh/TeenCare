@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-green: #a7f3d0;
+  --color-brand-blue: #bae6fd;
+  --color-brand-orange: #fed7aa;
+  
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --animate-spin-slow: spin 3s linear infinite;
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/40 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+  .glass-dark {
+    @apply bg-black/10 backdrop-blur-md border border-white/10 shadow-xl;
+  }
+}
+
+body {
+  @apply bg-linear-to-br from-brand-blue via-brand-green to-brand-orange min-h-screen font-sans text-slate-800;
+}
