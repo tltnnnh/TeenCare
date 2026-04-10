@@ -786,6 +786,11 @@ function ExerciseScreen({ profile, onLogWorkout, onBack, theme, checkAiUsage }: 
 
   const selectedSport = selectedSportId ? SPORTS_CONFIG[selectedSportId] : null;
 
+  useEffect(() => {
+    setAiAdvice("");
+    setChatInput("");
+  }, [selectedSportId]);
+
   const handleLogWorkout = () => {
     if (!selectedSport) return;
     const entry: WorkoutEntry = {
@@ -863,12 +868,6 @@ Hãy thử lại sau ít phút để mình có thể đưa ra lời khuyên chi 
       setIsAiLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (selectedSport && !aiAdvice) {
-      handleGetAiAdvice();
-    }
-  }, [selectedSportId]);
 
   return (
     <motion.div
