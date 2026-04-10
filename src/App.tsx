@@ -200,6 +200,24 @@ interface RelaxationExercise {
   icon: React.ReactNode;
 }
 
+interface SoulmateCache {
+  question: string;
+  answer: string;
+  timestamp: string;
+}
+
+interface AiUsage {
+  count: number;
+  date: string;
+}
+
+interface AiUsage {
+  count: number;
+  date: string;
+}
+
+const AI_LIMIT_PER_DAY = 5;
+
 // --- Constants ---
 
 const POSITIVE_QUOTES = [
@@ -753,9 +771,10 @@ interface ExerciseScreenProps {
   onLogWorkout: (entry: WorkoutEntry) => void;
   onBack: () => void;
   theme: any;
+  checkAiUsage: () => boolean;
 }
 
-function ExerciseScreen({ profile, onLogWorkout, onBack, theme }: ExerciseScreenProps) {
+function ExerciseScreen({ profile, onLogWorkout, onBack, theme, checkAiUsage }: ExerciseScreenProps) {
   const [selectedSportId, setSelectedSportId] = useState<string | null>(profile.favoriteSport || null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiAdvice, setAiAdvice] = useState("");
@@ -786,12 +805,32 @@ function ExerciseScreen({ profile, onLogWorkout, onBack, theme }: ExerciseScreen
 
   const handleGetAiAdvice = async (question?: string) => {
     if (!selectedSport) return;
+
+    // Check cache first
+    const cacheKey = `exercise_${selectedSport.id}_${question || 'general'}`;
+    const cached = localStorage.getItem(cacheKey);
+    
+    if (cached) {
+      setIsAiLoading(true);
+      setAiAdvice("");
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setAiAdvice(cached);
+      setIsAiLoading(false);
+      return;
+    }
+
+    // Check usage limit
+    if (!checkAiUsage()) {
+      setAiAdvice(`Bạn đã hết lượt sử dụng AI trong ngày hôm nay (${AI_LIMIT_PER_DAY}/${AI_LIMIT_PER_DAY}). Hãy quay lại vào ngày mai nhé!`);
+      return;
+    }
+
     setIsAiLoading(true);
     
     try {
       const prompt = question 
-        ? `Người dùng đang tập môn ${selectedSport.name}. Câu hỏi của họ: "${question}". Hãy đưa ra lời khuyên chuyên sâu.`
-        : `Hãy đưa ra lời khuyên tổng quan về chế độ tập luyện và dinh dưỡng cho môn ${selectedSport.name} dành cho học sinh ${profile.age} tuổi, giới tính ${profile.gender === 'male' ? 'Nam' : 'Nữ'}.`;
+        ? `Người dùng đang tập môn ${selectedSport.name}. Câu hỏi của họ: "${question}". Hãy đưa ra lời khuyên chuyên sâu, ngắn gọn (khoảng 100-150 chữ).`
+        : `Hãy đưa ra lời khuyên tổng quan về chế độ tập luyện và dinh dưỡng cho môn ${selectedSport.name} dành cho học sinh ${profile.age} tuổi, giới tính ${profile.gender === 'male' ? 'Nam' : 'Nữ'}. Yêu cầu ngắn gọn, súc tích (khoảng 150 chữ).`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
@@ -803,6 +842,10 @@ function ExerciseScreen({ profile, onLogWorkout, onBack, theme }: ExerciseScreen
 
       const adviceText = (response.text || "Xin lỗi, tôi không thể đưa ra lời khuyên lúc này.").replace(/\*/g, '');
       setAiAdvice(adviceText);
+      
+      // Save to cache
+      localStorage.setItem(cacheKey, adviceText);
+      
       setChatInput("");
     } catch (error) {
       console.error("AI Error:", error);
@@ -2549,6 +2592,8 @@ export default function App() {
   const [sleepAiAdvice, setSleepAiAdvice] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [showMoodHistory, setShowMoodHistory] = useState(false);
+  const [soulmateCache, setSoulmateCache] = useState<SoulmateCache[]>([]);
+  const [aiUsage, setAiUsage] = useState<AiUsage>({ count: 0, date: new Date().toISOString().split('T')[0] });
 
   // Nutrition State
   const [nutritionHistory, setNutritionHistory] = useState<NutritionEntry[]>([]);
@@ -2587,6 +2632,8 @@ export default function App() {
     THEME: 'teencare_theme',
     AI_FEEDBACK: 'teencare_ai_feedback',
     SLEEP_HISTORY: 'teencare_sleep_history',
+    SOULMATE_CACHE: 'teencare_soulmate_cache',
+    AI_USAGE: 'teencare_ai_usage',
   };
 
   // Auth & Data Initialization
@@ -2603,6 +2650,8 @@ export default function App() {
         const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
         const savedAiFeedback = localStorage.getItem(STORAGE_KEYS.AI_FEEDBACK);
         const savedSleepHistory = localStorage.getItem(STORAGE_KEYS.SLEEP_HISTORY);
+        const savedSoulmateCache = localStorage.getItem(STORAGE_KEYS.SOULMATE_CACHE);
+        const savedAiUsage = localStorage.getItem(STORAGE_KEYS.AI_USAGE);
 
         if (savedProfile) {
           const profileData = JSON.parse(savedProfile);
@@ -2617,6 +2666,16 @@ export default function App() {
         if (savedWorkoutHistory) setWorkoutHistory(JSON.parse(savedWorkoutHistory));
         if (savedAiFeedback) setAiFeedback(JSON.parse(savedAiFeedback));
         if (savedSleepHistory) setSleepHistory(JSON.parse(savedSleepHistory));
+        if (savedSoulmateCache) setSoulmateCache(JSON.parse(savedSoulmateCache));
+        if (savedAiUsage) {
+          const usage = JSON.parse(savedAiUsage);
+          const today = new Date().toISOString().split('T')[0];
+          if (usage.date === today) {
+            setAiUsage(usage);
+          } else {
+            setAiUsage({ count: 0, date: today });
+          }
+        }
         if (savedTheme) setTheme(JSON.parse(savedTheme));
 
         setIsAuthReady(true);
@@ -2927,9 +2986,9 @@ export default function App() {
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       console.error("Excel export failed:", error);
-      // Fallback for iframe restrictions if needed
     }
   };
+
   const saveBMI = () => {
     if (!bmiResult) return;
     const newEntry: BMIEntry = {
@@ -2942,7 +3001,6 @@ export default function App() {
       color: bmiResult.color,
     };
     addBmiEntryToLocal(newEntry);
-    // Also update main profile to persist height/weight
     saveProfileToLocal(profile, schoolProfile);
     setSuccessMessage("Cập nhật chỉ số BMI thành công!");
     setTimeout(() => setSuccessMessage(null), 3000);
@@ -2960,8 +3018,6 @@ export default function App() {
       newEntry.followUp = followUpText;
     }
     addMoodEntryToLocal(newEntry);
-
-    // Reset inputs after saving
     setMoodNote("");
     setMentalIssue("");
     setFollowUpNote("");
@@ -2969,75 +3025,125 @@ export default function App() {
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
+  const checkAiUsage = () => {
+    const today = new Date().toISOString().split('T')[0];
+    let currentUsage = aiUsage;
+    if (aiUsage.date !== today) {
+      currentUsage = { count: 0, date: today };
+    }
+    
+    if (currentUsage.count >= AI_LIMIT_PER_DAY) {
+      setAiAdvice(`Bạn đã hết lượt sử dụng AI trong ngày hôm nay (${AI_LIMIT_PER_DAY}/${AI_LIMIT_PER_DAY}). Hãy quay lại vào ngày mai hoặc xem các gợi ý có sẵn nhé!`);
+      return false;
+    }
+    
+    const newUsage = { ...currentUsage, count: currentUsage.count + 1 };
+    setAiUsage(newUsage);
+    localStorage.setItem(STORAGE_KEYS.AI_USAGE, JSON.stringify(newUsage));
+    return true;
+  };
+
+  useEffect(() => {
+    if (!mentalIssue.trim()) {
+      return;
+    }
+  }, [mentalIssue]);
+
   const handleGetAiAdvice = async () => {
     if (!mentalIssue.trim()) return;
+    
+    // Check cache first
+    const normalize = (s: string) => s.toLowerCase().replace(/[^\w\s]/g, '').trim();
+    const qNorm = normalize(mentalIssue);
+    
+    const cached = soulmateCache.find(entry => {
+      const entryNorm = normalize(entry.question);
+      if (qNorm === entryNorm) return true;
+      
+      const words1 = qNorm.split(/\s+/).filter(w => w.length > 2);
+      const words2 = entryNorm.split(/\s+/).filter(w => w.length > 2);
+      if (words1.length === 0 || words2.length === 0) return false;
+      
+      const intersection = words1.filter(w => words2.includes(w));
+      const similarity = intersection.length / Math.max(words1.length, words2.length);
+      return similarity > 0.85;
+    });
+
+    if (cached) {
+      setIsAiLoading(true);
+      setAiAdvice("");
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setAiAdvice(cached.answer);
+      setIsAiLoading(false);
+      return;
+    }
+
+    // Check usage limit for full advice
+    if (!checkAiUsage()) return;
+
     setIsAiLoading(true);
     setAiAdvice("");
-
-    // Artificial delay of 2 seconds
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
       const model = "gemini-3-flash-preview";
       const userRole = 'Học sinh';
-      const prompt = `Bạn là "TeenCare Soulmate", một chuyên gia tư vấn tâm lý học đường thấu hiểu, ấm áp và chân thành.
+      const prompt = `Bạn là "TeenCare Soulmate", một chuyên gia tư vấn tâm lý học đường thấu hiểu và là người bạn đồng hành thông thái.
       
       Thông tin người dùng:
       - Tên: ${profile.name}
       - Vai trò: ${userRole}
       - Tâm trạng hiện tại: ${currentMood ? MOOD_CONFIG[currentMood].label : 'Chưa xác định'}
-      - Ghi chú cảm xúc: "${moodNote}"
-      - Vấn đề đang gặp phải: "${mentalIssue}"
-      - Chia sẻ thêm: "${followUpNote}"
-      - BMI hiện tại: ${bmiResult ? `${bmiResult.score.toFixed(1)} (${bmiResult.label})` : 'Chưa có dữ liệu'}
+      - Nội dung người dùng nhắn: "${mentalIssue}"
       
-      Nhiệm vụ của bạn:
-      1. Chào người dùng bằng tên, giới thiệu bản thân là TeenCare Soulmate và thể hiện sự thông cảm sâu sắc với vấn đề họ đang gặp phải. Sử dụng từ ngữ xưng hô phù hợp với vai trò là ${userRole}.
+      NHIỆM VỤ CỦA BẠN:
       
-      2. Áp dụng quy trình tư vấn chuyên nghiệp sau đây để đưa ra lời khuyên:
-         - Thiết lập quan hệ: Gợi ý cách kết nối, tìm hiểu thêm thông tin qua các kênh như gia đình, đồng nghiệp/giáo viên chủ nhiệm, hoặc bạn bè xung quanh.
-         - Đánh giá: Đưa ra nhận định khách quan về mức độ của vấn đề (ví dụ: đang ở mức khổ tâm hay nhiễu tâm).
-         - Tìm hiểu và lựa chọn giải pháp: Đề xuất các hướng giải quyết cụ thể cho vấn đề của họ.
-         - Thực hiện:
-            + Nếu vấn đề liên quan đến hành vi sai lệch (như bắt nạt hoặc bị bắt nạt): Phân tích rõ đó là hành vi chưa đúng, cần hướng tới những giá trị tốt đẹp, giúp đỡ người yếu thế hơn.
-            + Tuyên dương và động viên những nỗ lực hoặc điểm tích cực của họ trong cuộc sống/học tập.
-         - Kết thúc: Đưa ra lời hứa hẹn đồng hành và động viên để họ có thêm động lực.
-         - Xác định kết quả: Giúp họ nhận biết các dấu hiệu bất thường về hành vi/tâm lý của bản thân để tự theo dõi.
-         - Đánh giá nhân tố tác động: Phân tích sơ bộ các yếu tố đang tác động đến họ để có hướng giải quyết đúng đắn.
-
-      3. Nếu phát hiện dấu hiệu nguy hiểm (tự hại, bạo lực):
-         - Lập tức phát cảnh báo nghiêm túc nhưng vẫn giữ sự quan tâm.
-         - Yêu cầu họ gặp chuyên gia y tế hoặc người có chuyên môn ngay lập tức.
+      TRƯỜNG HỢP 1: Nếu người dùng chia sẻ về cảm xúc, khó khăn, áp lực (Tâm lý):
+      Hãy viết phản hồi gồm đúng 5 đoạn văn ngắn gọn, không dùng tiêu đề, mỗi đoạn có độ dài như sau:
+      1. Nhận diện và đồng cảm: (4-5 câu) Thừa nhận khó khăn, khẳng định cảm xúc này là bình thường.
+      2. Phân tích & Chăm sóc bản thân: (5-7 câu) Phân tích sơ bộ và gợi ý cách ổn định cảm xúc (nghỉ ngơi, hít thở, nghe nhạc).
+      3. Khuyến khích chia sẻ: (4-5 câu) Gợi ý nói chuyện với người thân, bạn bè.
+      4. Định hướng hỗ trợ chuyên môn: (4-5 câu) Gợi ý tìm đến tư vấn tâm lý nếu cần.
+      5. Thông điệp tích cực: (4-5 câu) Khuyến khích kiên nhẫn và chăm sóc bản thân.
       
-      4. QUAN TRỌNG: Không sử dụng các đề mục có dấu ### hay bất kỳ định dạng tiêu đề nào. Hãy viết nội dung theo phong cách kể chuyện, tư vấn mạch lạc, trôi chảy và tự nhiên như một cuộc trò chuyện trực tiếp.
-
-      5. Cuối câu trả lời LUÔN kèm theo lưu ý: "Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn nếu bạn nhờ đến người thân đáng tin cậy hoặc giáo viên để được tư vấn tốt hơn."`;
+      TRƯỜNG HỢP 2: Nếu người dùng hỏi về Toán học hoặc bài tập khác:
+      Hãy giải đáp một cách chi tiết, chính xác và dễ hiểu, vẫn giữ giọng văn ấm áp của một người bạn Soulmate.
+      
+      QUY TẮC CHUNG:
+      - Giọng văn tự nhiên, trôi chảy, giống trò chuyện hơn là nghị luận.
+      - Tuyệt đối không dùng định dạng tiêu đề (###).
+      - LUÔN kết thúc bằng câu: "Lưu ý: Lời khuyên từ AI chỉ mang tính chất tham khảo, sẽ tốt hơn nếu bạn tìm đến giáo viên hoặc người thân mình tin tưởng để nhận sự giúp đỡ."`;
 
       const response = await ai.models.generateContent({
         model,
         contents: prompt,
         config: {
-          systemInstruction: "Bạn là TeenCare Soulmate, một chuyên gia tư vấn tâm lý học học đường thân thiện. Ngôn ngữ của bạn phải gần gũi, thấu cảm và an toàn. Tuyệt đối không sử dụng các ký tự định dạng tiêu đề như ###. Hãy viết văn bản mạch lạc, trôi chảy.",
+          systemInstruction: "Bạn là TeenCare Soulmate. Bạn thấu cảm, chân thành và thông thái. Bạn hỗ trợ học sinh cả về tâm lý và học tập (đặc biệt là Toán). Hãy viết văn bản tự nhiên, mạch lạc, không dùng tiêu đề ###.",
         }
       });
 
-      const adviceText = (response.text || "Xin lỗi, tôi không thể đưa ra lời khuyên lúc này.").replace(/\*/g, '').replace(/#/g, '');
+      const adviceText = (response.text || "Xin lỗi, mình gặp chút trục trặc khi suy nghĩ. Bạn thử lại nhé!").replace(/#/g, '');
       setAiAdvice(adviceText);
+
+      // Save to cache
+      const newCacheEntry: SoulmateCache = {
+        question: mentalIssue,
+        answer: adviceText,
+        timestamp: new Date().toISOString()
+      };
+      const updatedCache = [newCacheEntry, ...soulmateCache].slice(0, 50); // Keep last 50
+      setSoulmateCache(updatedCache);
+      localStorage.setItem(STORAGE_KEYS.SOULMATE_CACHE, JSON.stringify(updatedCache));
+
     } catch (error) {
       console.error("AI Error:", error);
-      const userRole = 'Học sinh';
-      const fallbackAdvice = `Chào ${profile.name}, mình là TeenCare Soulmate đây. Với vai trò là ${userRole}, mình thấu hiểu những áp lực và băn khoăn mà bạn đang chia sẻ.
+      const fallbackAdvice = `Chào ${profile.name}, mình là TeenCare Soulmate đây. Mình thấu hiểu những gì bạn đang trải qua.
 
-Dựa trên quy trình tư vấn, mình xin đưa ra nhận định sơ bộ: Vấn đề của bạn có thể đang ở mức cần được quan tâm và xoa dịu ngay. Bạn không hề đơn độc trong hành trình này.
+Có vẻ như bạn đang gặp chút khó khăn và cảm thấy hơi căng thẳng đúng không? Điều này hoàn toàn bình thường và bạn không hề đơn độc đâu. Hãy thử dành chút thời gian nghỉ ngơi, hít thở sâu hoặc nghe một bản nhạc nhẹ nhàng để tâm trạng ổn định hơn nhé. Việc chia sẻ với người thân hoặc bạn bè cũng là một cách rất tốt để vơi đi gánh nặng trong lòng.
 
-Một vài gợi ý hành động cho bạn:
-- Thiết lập quan hệ: Thử mở lòng chia sẻ với một người đồng nghiệp hoặc bạn thân đáng tin cậy.
-- Tìm kiếm giải pháp: Dành thời gian tĩnh lặng để nhìn nhận lại các nhân tố đang tác động đến mình.
-- Thực hiện: Hãy luôn hướng tới những giá trị tích cực và đừng quên dành cho bản thân những lời khen ngợi vì đã nỗ lực đến tận bây giờ.
+Mình tin rằng với sự kiên nhẫn, bạn sẽ vượt qua được giai đoạn này. Hãy nhớ chăm sóc bản thân thật tốt nhé!
 
-Mình hứa sẽ luôn đồng hành cùng bạn. Hãy tin rằng mọi chuyện rồi sẽ ổn thôi!
-
-Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn nếu bạn nhờ đến người thân đáng tin cậy hoặc giáo viên để được tư vấn tốt hơn.`;
+Lưu ý: Lời khuyên từ AI chỉ mang tính chất tham khảo, sẽ tốt hơn nếu bạn tìm đến giáo viên hoặc người thân mình tin tưởng để nhận sự giúp đỡ.`;
       setAiAdvice(fallbackAdvice);
     } finally {
       setIsAiLoading(false);
@@ -3063,6 +3169,26 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
   }, [moodHistory]);
 
   const handleGetNutritionAdvice = async () => {
+    // Check cache first
+    const bmiLabel = bmiResult?.label || "Bình thường";
+    const cacheKey = `nutrition_${bmiLabel}_${currentNutritionGoal}`;
+    const cached = localStorage.getItem(cacheKey);
+    
+    if (cached) {
+      setIsNutritionLoading(true);
+      setNutritionAdvice("");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setNutritionAdvice(cached);
+      setIsNutritionLoading(false);
+      return;
+    }
+
+    // Check usage limit
+    if (!checkAiUsage()) {
+      setNutritionAdvice(`Bạn đã hết lượt sử dụng AI trong ngày hôm nay (${AI_LIMIT_PER_DAY}/${AI_LIMIT_PER_DAY}). Hãy quay lại vào ngày mai nhé!`);
+      return;
+    }
+
     setIsNutritionLoading(true);
     setNutritionAdvice("");
 
@@ -3086,16 +3212,12 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
       - Mức độ vận động: ${ACTIVITY_LABELS[profile.activity]}
       - Mục tiêu hiện tại: ${NUTRITION_GOALS[currentNutritionGoal].label}
 
-      Hãy phân tích sâu sự kết hợp giữa tình trạng BMI (${bmiLabel}) và mục tiêu (${NUTRITION_GOALS[currentNutritionGoal].label}) của bạn để đưa ra lời khuyên CỰC KỲ CHI TIẾT. 
+      Hãy phân tích sự kết hợp giữa BMI (${bmiLabel}) và mục tiêu (${NUTRITION_GOALS[currentNutritionGoal].label}) để đưa ra lời khuyên ngắn gọn, súc tích (khoảng 150-200 chữ). 
       
       Yêu cầu:
-      1. **Xưng hô**: Sử dụng "bạn" và "tôi" xuyên suốt cuộc trò chuyện. Ngôn ngữ chân thành, chuyên nghiệp nhưng gần gũi.
-      2. **Phân tích chuyên sâu**: Tại sao với BMI hiện tại và mục tiêu này, bạn cần chế độ ăn như vậy? (Ví dụ: Nếu thiếu cân mà muốn tăng cơ, cần nạp dư calo và protein thế nào).
-      3. **Thực đơn cụ thể kiểu Việt**: Đưa ra thực đơn 1 ngày với các món ăn CỰC KỲ CỤ THỂ và BÌNH DÂN (Ví dụ: thay vì nói "ăn đạm", hãy nói "1 bát con thịt nạc băm rim mặn" hoặc "2 quả trứng vịt lộn luộc").
-         - Sáng: Món cụ thể.
-         - Trưa: Mâm cơm cụ thể (Cơm + Món mặn + Món xào + Canh).
-         - Tối: Mâm cơm cụ thể.
-         - Bữa phụ (nếu cần cho mục tiêu): Món cụ thể.
+      1. **Xưng hô**: Sử dụng "bạn" và "tôi". Ngôn ngữ chân thành, gần gũi.
+      2. **Phân tích nhanh**: Tại sao với BMI hiện tại và mục tiêu này, bạn cần chế độ ăn như vậy?
+      3. **Thực đơn tiêu biểu**: Đưa ra thực đơn 1 ngày với các món ăn cụ thể và bình dân (Sáng, Trưa, Tối).
       4. **Mẹo chế biến**: Cách nấu phù hợp với mục tiêu (Ví dụ: Giảm cân thì nên luộc rau muống lấy nước làm canh thay vì xào tỏi nhiều dầu).
       5. **Lời khuyên thói quen**: Uống nước, ngủ nghỉ, vận động bổ trợ.
 
@@ -3114,6 +3236,9 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
       const advice = (response.text || "Xin lỗi, tôi không thể đưa ra lời khuyên lúc này.").replace(/\*/g, '').replace(/#/g, '');
       setNutritionAdvice(advice);
       
+      // Save to cache
+      localStorage.setItem(`nutrition_${bmiLabel}_${currentNutritionGoal}`, advice);
+      
       // Save to history automatically when advice is generated
       const newEntry: NutritionEntry = {
         date: new Date().toISOString(),
@@ -3131,6 +3256,25 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
   };
 
   const handleGetSleepAiAdvice = async (hours: number, quality: string, note: string) => {
+    // Check cache first
+    const cacheKey = `sleep_${hours}_${quality}`;
+    const cached = localStorage.getItem(cacheKey);
+    
+    if (cached) {
+      setIsSleepAiLoading(true);
+      setSleepAiAdvice("");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setSleepAiAdvice(cached);
+      setIsSleepAiLoading(false);
+      return;
+    }
+
+    // Check usage limit
+    if (!checkAiUsage()) {
+      setSleepAiAdvice(`Bạn đã hết lượt sử dụng AI trong ngày hôm nay (${AI_LIMIT_PER_DAY}/${AI_LIMIT_PER_DAY}). Hãy quay lại vào ngày mai nhé!`);
+      return;
+    }
+
     setIsSleepAiLoading(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -3140,15 +3284,12 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
       - Chất lượng: ${quality === 'good' ? 'Tốt' : quality === 'normal' ? 'Bình thường' : 'Kém'}
       - Ghi chú thêm: ${note || 'Không có'}
       
-      Hãy đưa ra phân tích chi tiết và lời khuyên hữu ích để cải thiện giấc ngủ cho lứa tuổi học sinh. 
+      Hãy đưa ra phân tích và lời khuyên ngắn gọn, súc tích (khoảng 3 đoạn văn ngắn) để cải thiện giấc ngủ cho lứa tuổi học sinh. 
       Yêu cầu:
-      1. Nội dung phải dài và chi tiết (khoảng 5 đoạn văn rõ ràng).
-      2. MỖI ĐOẠN PHẢI CÁCH NHAU BẰNG 2 LẦN XUỐNG DÒNG (double newline) để tạo khoảng trống rõ rệt giữa các đoạn.
-      3. Cấu trúc bắt buộc:
-         - Lời chào: "Chào bạn,..."
-         - Các đoạn phân tích và lời khuyên chi tiết.
-         - Lời cảm ơn hoặc lời chúc ngủ ngon.
-      4. Tuyệt đối KHÔNG sử dụng các ký tự định dạng như dấu sao (*), dấu thăng (#) hay bất kỳ ký tự đặc biệt nào để làm nổi bật văn bản. Hãy viết văn bản thuần túy.
+      1. Nội dung súc tích, đi thẳng vào vấn đề.
+      2. MỖI ĐOẠN PHẢI CÁCH NHAU BẰNG 2 LẦN XUỐNG DÒNG.
+      3. Cấu trúc: Lời chào, các lời khuyên chính, lời chúc ngủ ngon.
+      4. Tuyệt đối KHÔNG sử dụng các ký tự định dạng như dấu sao (*) hay dấu thăng (#).
       5. Cuối cùng, phải có dòng chữ: "Lưu ý: Những phân tích và lời khuyên từ AI chỉ mang tính chất tham khảo."
       6. Hãy xưng hô thân thiện là "TeenCare" và gọi người dùng là "bạn".`;
 
@@ -3161,6 +3302,9 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
         .replace(/\*/g, '')
         .replace(/#/g, '');
       setSleepAiAdvice(adviceText);
+      
+      // Save to cache
+      localStorage.setItem(`sleep_${hours}_${quality}`, adviceText);
     } catch (error) {
       console.error("AI Sleep Advice Error:", error);
       setSleepAiAdvice("TeenCare đang gặp chút trục trặc kỹ thuật. Bạn hãy chú ý ngủ đủ giấc và đúng giờ nhé!");
@@ -3984,6 +4128,7 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
                   onLogWorkout={addWorkoutEntryToLocal}
                   onBack={() => setStep("dashboard")}
                   theme={exerciseTheme}
+                  checkAiUsage={checkAiUsage}
                 />
               )}
 
@@ -4123,6 +4268,25 @@ Lưu ý: Lời khuyên này chỉ mang tính chất tham khảo. Sẽ tốt hơn
                       <div className="text-left">
                         <p className="text-sm font-bold">Thay đổi hồ sơ</p>
                         <p className="text-[10px] opacity-70">Cập nhật thông tin cá nhân và trường học</p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const today = new Date().toISOString().split('T')[0];
+                        const newUsage = { count: 0, date: today };
+                        setAiUsage(newUsage);
+                        localStorage.setItem(STORAGE_KEYS.AI_USAGE, JSON.stringify(newUsage));
+                        setSuccessMessage("Đã đặt lại lượt sử dụng AI!");
+                        setTimeout(() => setSuccessMessage(null), 3000);
+                      }}
+                      className="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl text-blue-600 hover:bg-blue-100 transition-all"
+                    >
+                      <div className="p-2 bg-white rounded-xl shadow-sm">
+                        <RefreshCw size={18} />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-bold">Làm mới lượt AI</p>
+                        <p className="text-[10px] opacity-70">Khôi phục lượt sử dụng AI trong ngày</p>
                       </div>
                     </button>
                   </div>
